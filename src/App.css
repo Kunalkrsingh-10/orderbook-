@@ -1,347 +1,6 @@
-/* 
- * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
 
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #adb5c4 0%, #2a5298 100%);
-  color: #333;
-  min-height: 100vh;
-  padding: 20px;
-}
 
-.container {
-  max-width: 1400px;
-  margin: 0 auto;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.header {
-  background: linear-gradient(266deg, #073ce1, #e6095be6);
-  color: white;
-  padding: 20px 30px;
-  text-align: center;
-}
-
-.header h1 {
-  font-size: 28px;
-  margin-bottom: 5px;
-}
-
-.header p {
-  opacity: 0.9;
-  font-size: 14px;
-}
-
-.market-stats {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-  font-size: 12px;
-  color: #ecf0f1;
-  margin-top: 5px;
-}
-
-.main-content {
-  display: grid;
-  grid-template-columns: 1fr 350px;
-  gap: 10px;
-  padding: 30px;
-}
-
-.order-book-section {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 4px 6px rgba(129, 111, 219, 0.1);
-}
-
-.input-form {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.form-group label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #495057;
-}
-
-.form-input {
-  padding: 10px;
-  border: 2px solid #e9ecef;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
-.form-input1 {
-  padding: 10px;
-  border: 2px solid #e9ecef;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: all 0.3s ease;
-  width:130px;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-}
-
-.submit-button {
-  padding: 12px 20px;
-  background: linear-gradient(90deg, #3498db, #2980b9);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.submit-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-}
-
-.order-book-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.strike-section {
-  margin-bottom: 30px;
-}
-
-.table-card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 15px;
-}
-
-.table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.table-header h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0;
-}
-
-.close-button {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.close-button:hover {
-  background: #c0392b;
-}
-
-.trading-panel {
-  background: white;
-  border-radius: 8px;
-  padding: 25px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  height: fit-content;
-  position: sticky;
-  top: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.add-order-section,
-.delete-order-section,
-.pending-orders-section {
-  background: #f8f9fa;
-  border-radius: 6px;
-  padding: 15px;
-}
-
-.add-order-section h3,
-.delete-order-section h3,
-.pending-orders-section h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 10px;
-  text-align: center;
-}
-
-.order-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.side-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.side-btn {
-  padding: 12px;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.side-btn.buy {
-  background: #27ae60;
-  color: white;
-}
-
-.side-btn.buy:hover {
-  background: #219a52;
-  transform: translateY(-2px);
-}
-
-.side-btn.sell {
-  background: #e74c3c;
-  color: white;
-}
-
-.side-btn.sell:hover {
-  background: #c0392b;
-  transform: translateY(-2px);
-}
-
-.lot-helper {
-  background: #e8f4fd;
-  padding: 10px;
-  border-radius: 4px;
-  font-size: 11px;
-  color: #0056b3;
-  margin-top: 5px;
-}
-
-.pending-orders-section table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.pending-orders-section th,
-.pending-orders-section td {
-  padding: 8px;
-  text-align: center;
-  border-bottom: 1px solid #f1f3f4;
-  font-size: 13px;
-}
-
-.pending-orders-section th {
-  background: #f8f9fa;
-  font-weight: 600;
-  color: #495057;
-}
-
-.btn-small {
-  padding: 6px 10px;
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.btn-small:hover {
-  background: #c0392b;
-}
-
-.ag-theme-alpine {
-  --ag-grid-size: 8px;
-  --ag-header-background-color: #f8f9fa;
-  --ag-row-hover-background-color: #e0f2fe;
-  --ag-selected-row-background-color: #bae6fd;
-  --ag-border-color: #dee2e6;
-  --ag-foreground-color: #2c3e50;
-  --ag-background-color: #ffffff;
-}
-
-.ag-theme-alpine .ag-cell.buy-side {
-  background: rgba(39, 174, 96, 0.1);
-  color: #27ae60;
-}
-
-.ag-theme-alpine .ag-cell.sell-side {
-  background: rgba(231, 76, 60, 0.1);
-  color: #e74c3c;
-}
-
-@media (max-width: 768px) {
-  .main-content {
-    grid-template-columns: 1fr;
-  }
-
-  .trading-panel {
-    position: static;
-  }
-
-  .input-form {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .form-group {
-    align-items: stretch;
-  }
-
-  .form-input {
-    width: 100%;
-  }
-}
-.strike-section {
-  display: flex;
-  flex-direction: row;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-bottom: 30px;
-} 
- */ 
-
- * {
+* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -406,8 +65,8 @@ body {
 
 .input-form {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: stretch; /* Changed to stretch for consistent height */
+  gap: 10px; /* Increased gap for better spacing */
   flex-wrap: wrap;
   background: #f8f9fa;
   padding: 20px;
@@ -427,46 +86,36 @@ body {
   color: #495057;
 }
 
-.form-input {
-  padding: 10px;
-  border: 2px solid #e9ecef;
+.form-input,
+.form-input1,
+.submit-button {
+  padding: 10px; /* Standardized padding */
+  border: 2px solid #e9ecef; /* Consistent border */
   border-radius: 6px;
   font-size: 14px;
   transition: all 0.3s ease;
-}
-.form-input1 {
-  padding: 10px;
-  border: 2px solid #e9ecef;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: all 0.3s ease;
-  width:130px;
+  height: 38px; /* Fixed height for alignment */
+  box-sizing: border-box;
 }
 
-.form-input:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+.form-input1,
+.submit-button {
+  width: 130px; /* Consistent width */
 }
 
-
-.form-input1:focus {
+.form-input:focus,
+.form-input1:focus,
+.submit-button:focus {
   outline: none;
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .submit-button {
-  padding: 12px;
   background: linear-gradient(90deg, #1e3a8a, #2563eb);
   color: white;
-  border: none;
-  border-radius: 6px;
   font-weight: 600;
-  font-size: 14px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  width: 130px;
   text-align: center;
 }
 
@@ -478,7 +127,8 @@ body {
 
 .order-book-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row; /* Changed to row for horizontal alignment */
+  flex-wrap: wrap; /* Wrap tables to next row if space is limited */
   gap: 20px;
 }
 
@@ -487,7 +137,7 @@ body {
   flex-direction: row;
   gap: 20px;
   flex-wrap: wrap;
-  margin-bottom: 30px;
+  margin-bottom: 20px; /* Reduced margin for tighter layout */
 }
 
 .table-card {
@@ -495,6 +145,7 @@ body {
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 15px;
+  min-width: 360px; /* Ensure table cards respect ag-grid width */
 }
 
 .table-header {
@@ -548,7 +199,7 @@ body {
 .pending-orders-section {
   background: #f8f9fa;
   border-radius: 6px;
-  padding: 15px;
+  padding: 10px;
 }
 
 .add-order-section h3,
@@ -564,7 +215,7 @@ body {
 .order-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 5px;
 }
 
 .side-buttons {
@@ -687,6 +338,6 @@ body {
   .form-input,
   .form-input1,
   .submit-button {
-    width: 100%;
+    width: 80%;
   }
 }
