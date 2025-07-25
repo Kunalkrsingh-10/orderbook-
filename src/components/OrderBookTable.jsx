@@ -252,7 +252,7 @@ function OrderBookTable({ strike, callData, putData, futData, setOrderBooks, del
       headerName: 'Bid Qty', 
       field: 'bidQty', 
       sortable: true, 
-      width: 80, 
+      width: 90, 
       valueFormatter: formatQuantity,
       cellClass: 'buy-side'
     },
@@ -260,7 +260,7 @@ function OrderBookTable({ strike, callData, putData, futData, setOrderBooks, del
       headerName: 'Bid Price', 
       field: 'bidPrice', 
       sortable: true, 
-      width: 80,
+      width: 75,
       valueFormatter: formatPrice,
       cellClass: 'buy-side clickable'
     },
@@ -268,7 +268,7 @@ function OrderBookTable({ strike, callData, putData, futData, setOrderBooks, del
       headerName: 'Ask Price', 
       field: 'askPrice', 
       sortable: true, 
-      width: 80,
+      width: 75,
       valueFormatter: formatPrice,
       cellClass: 'sell-side clickable'
     },
@@ -276,7 +276,7 @@ function OrderBookTable({ strike, callData, putData, futData, setOrderBooks, del
       headerName: 'Ask Qty', 
       field: 'askQty', 
       sortable: true, 
-      width: 80, 
+      width: 90, 
       valueFormatter: formatQuantity,
       cellClass: 'sell-side'
     }

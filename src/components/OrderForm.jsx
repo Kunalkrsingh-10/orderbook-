@@ -252,17 +252,6 @@ function OrderForm() {
         <h3>Add Order</h3>
         <form className="order-form">
           <div className="form-group">
-            <label htmlFor="add-strike">Strike:</label>
-            <input
-              id="add-strike"
-              type="number"
-              value={addStrike}
-              onChange={(e) => setAddStrike(e.target.value)}
-              placeholder="e.g., 24500"
-              className="form-input"
-            />
-          </div>
-          <div className="form-group">
             <label htmlFor="add-option-type">Option Type:</label>
             <select
               id="add-option-type"
@@ -275,6 +264,19 @@ function OrderForm() {
               <option value="fut">FUT</option>
             </select>
           </div>
+          <div className="form-group">
+            <label htmlFor="add-strike">Strike:</label>
+            <input
+              id="add-strike"
+              type="number"
+              value={addStrike}
+              onChange={(e) => setAddStrike(e.target.value)}
+              placeholder="e.g., 24500"
+              className="form-input"
+              disabled={addOptionType === 'fut'}
+            />
+          </div>
+          
           <div className="form-group">
             <label htmlFor="add-price">Price (₹):</label>
             <input
