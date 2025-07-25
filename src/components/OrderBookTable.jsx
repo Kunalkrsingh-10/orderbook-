@@ -20,7 +20,7 @@ function OrderBookTable({ strike, callData, putData, futData, setOrderBooks, del
   };
 
   const formatPrice = (params) => {
-    return params.value || params.value === 0 ? Number(params.value).toFixed(3) : '';
+    return params.value || params.value === 0 ? Number(params.value).toFixed(2) : '';
   };
 
   const columnDefs = [
