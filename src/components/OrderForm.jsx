@@ -101,15 +101,17 @@ if (Math.abs(roundedPrice - expectedPrice) > 1e-8) {
     const order = { strike, option_type: addOptionType, order_type, price: roundedPrice, quantity, order_id };
 
     const book = orderBooks[strike][addOptionType];
-    const bestBid = book.bids[0]?.[0] || 0;
-    const bestAsk = book.asks[0]?.[0] || Infinity;
-    let canPlaceInOrderBook = false;
+const bestBid = book.bids[0]?.[0] || 0;
+const bestAsk = book.asks[0]?.[0] || Infinity;
+let canPlaceInOrderBook = false;
 
-    if (order_type === 'buy') {
-      canPlaceInOrderBook = roundedPrice > bestBid && roundedPrice < bestAsk;
-    } else {
-      canPlaceInOrderBook = roundedPrice < bestAsk && roundedPrice > bestBid;
-    }
+if (order_type === 'buy') {
+  
+  canPlaceInOrderBook = roundedPrice > bestBid;
+} else {
+   
+  canPlaceInOrderBook = roundedPrice < bestAsk;
+}
 
     if (canPlaceInOrderBook) {
       setOrderBooks((prev) => {

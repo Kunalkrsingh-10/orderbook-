@@ -91,57 +91,7 @@ function OrderBook() {
 
     setLoading(true);
     try {
-      // setOrderBooks((prevOrderBooks) => {
-      //   const newOrderBooks = { ...prevOrderBooks };
-      //   console.log('Generating order books. Strikes:', strikes, 'Trigger:', triggerOrderBookGeneration);
-      //   strikes.forEach(({ strike, type }) => {
-      //     if (type === 'Fut' && strike !== 0) {
-      //       console.log(`Skipping Fut for strike ${strike}`);
-      //       return;
-      //     }
-      //     if (type !== 'Fut' && strike === 0) {
-      //       console.log(`Skipping ${type} for strike 0`);
-      //       return;
-      //     }
-
-      //     if (!newOrderBooks[strike]) {
-      //       newOrderBooks[strike] = {
-      //         tickSize: newOrderBooks[strike]?.tickSize || 0.05,
-      //         lotSize: newOrderBooks[strike]?.lotSize || 75
-      //       };
-      //     }
-
-      //     const typeKey = type.toLowerCase();
-      //     const typeData = newOrderBooks[strike][typeKey] || {};
-      //     const tickSize = typeData.tickSize || newOrderBooks[strike].tickSize || 0.05;
-      //     const lotSize = typeData.lotSize || newOrderBooks[strike].lotSize || 75;
-      //     const bidPrice = typeData.bidPrice || (strike > 0 ? strike * 0.05 : 100);
-      //     const askPrice = typeData.askPrice || (strike > 0 ? strike * 0.05 + 0.05 : 100.05);
-
-      //     try {
-      //       newOrderBooks[strike][typeKey] = {
-      //         ...typeData,
-      //         ...generateOrderBook(
-      //           strike,
-      //           typeKey,
-      //           tickSize,
-      //           lotSize,
-      //           bidPrice,
-      //           askPrice
-      //         ),
-      //         tickSize,
-      //         lotSize,
-      //         bidPrice,
-      //         askPrice
-      //       };
-      //     } catch (err) {
-      //       console.error(`Error generating order book for ${type} strike ${strike}:`, err);
-      //       throw err;
-      //     }
-      //   });
-      //   console.log('Updated order books:', newOrderBooks);
-      //   return newOrderBooks;
-      // });
+      
       setOrderBooks((prevOrderBooks) => {
   const newOrderBooks = { ...prevOrderBooks };
   console.log('Generating order books. Strikes:', strikes, 'Trigger:', triggerOrderBookGeneration);
