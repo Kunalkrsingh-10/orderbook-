@@ -5,21 +5,64 @@ import { OrderBookContext } from '../App.jsx';
 
 function OrderForm() {
   const { orderBooks, setOrderBooks, setPendingOrders } = useContext(OrderBookContext);
-  const [addStrike, setAddStrike] = useState('');
+  const [addStrikePrice, setAddStrikePrice] = useState('');
   const [addOptionType, setAddOptionType] = useState('call');
-  const [addPrice, setAddPrice] = useState('');
-  const [addLots, setAddLots] = useState('');
-  const [deleteStrike, setDeleteStrike] = useState('');
+  const [orderPrice, setOrderPrice] = useState('');
+  const [orderLots, setOrderLots] = useState('');
+  const [deleteStrikePrice, setDeleteStrikePrice] = useState('');
   const [deleteOptionType, setDeleteOptionType] = useState('call');
   const [deleteOrderType, setDeleteOrderType] = useState('buy');
-  const [deletePrice, setDeletePrice] = useState('');
-  const [deleteLots, setDeleteLots] = useState('');
+  const [deletePriceLevel, setDeletePriceLevel] = useState('');
+  const [deleteOrderQuantity, setDeleteOrderQuantity] = useState('');
+
+  // Get available strike prices for dropdown
+  const availableStrikePrices = addOptionType === 'fut' 
+    ? [0]
+    : Object.keys(orderBooks)
+        .filter(strike => orderBooks[strike][addOptionType])
+        .map(strike => parseFloat(strike))
+        .sort((a, b) => a - b);
+
+  const adjustLevels = (entries, orderType, book, tickSize, lotSize, strike, optionType) => {
+    let sortedEntries = [...entries].sort((a, b) => orderType === 'buy' ? b[0] - a[0] : a[0] - b[0]);
+    sortedEntries = sortedEntries.map(([p, q, id], i) => [p, q, id, i + 1]);
+
+    if (sortedEntries.length < 10) {
+      const isBid = orderType === 'buy';
+      const referencePrice = sortedEntries.length > 0 
+        ? sortedEntries[sortedEntries.length - 1][0]
+        : isBid ? book.bidPrice : book.askPrice;
+      const newPrice = Number((referencePrice + (isBid ? -tickSize : tickSize)).toFixed(2));
+      const validPrice = isBid 
+        ? newPrice > 0 && newPrice < book.askPrice
+        : newPrice > book.bidPrice;
+      
+      if (validPrice) {
+        const newQty = lotSize * Math.floor(Math.random() * 5 + 1);
+        sortedEntries.push([
+          newPrice,
+          newQty,
+          `${isBid ? 'bid' : 'ask'}-${strike}-${optionType}-${Date.now()}`,
+          sortedEntries.length + 1
+        ]);
+      }
+    }
+
+    return sortedEntries;
+  };
 
   const handleAddOrder = (e, order_type) => {
     e.preventDefault();
-    const strike = parseFloat(addStrike);
-    let price = parseFloat(addPrice);
-    const lots = parseInt(addLots);
+    
+    let strike = parseFloat(addStrikePrice);
+    
+    // For FUT, force strike to 0
+    if (addOptionType === 'fut') {
+      strike = 0;
+    }
+
+    const price = parseFloat(orderPrice);
+    const lots = parseInt(orderLots);
 
     if (isNaN(strike) || isNaN(price) || isNaN(lots) || lots <= 0) {
       alert('Please enter valid strike, price, and lots');
@@ -30,36 +73,32 @@ function OrderForm() {
       alert(`No order book exists for ${addOptionType} strike ${strike}`);
       setPendingOrders((prev) => {
         const quantity = lots * (orderBooks[strike]?.lotSize || 75);
-        const order_id = `order-${strike}-${addOptionType}-${Date.now()}`;
+        const order_id = `order-${strike}-${addOptionType}-${orderPrice}-${Date.now()}`;
         const order = { strike, option_type: addOptionType, order_type, price, quantity, order_id };
         console.log('Order added to pending (no order book):', order);
         return [...prev, order];
       });
-      setAddStrike('');
-      setAddPrice('');
-      setAddLots('');
       return;
     }
 
     const lotSize = orderBooks[strike].lotSize || 75;
-    const tickSize = Number((orderBooks[strike].tickSize || 0.05).toFixed(3));
+    const tickSize = orderBooks[strike][addOptionType].tickSize || 0.05;
 
     // Round price to nearest tick size
-    price = Number((Math.round(price / tickSize) * tickSize).toFixed(3));
+    const roundedPrice = Number((Math.round(price / tickSize) * tickSize).toFixed(2));
 
-    // Validate price is a multiple of tickSize
-    const modulo = Math.abs(price % tickSize);
-    if (modulo > 1e-10) {
-      const floorPrice = Number((tickSize * Math.floor(price / tickSize)).toFixed(3));
-      const ceilPrice = Number((tickSize * Math.ceil(price / tickSize)).toFixed(3));
-      console.log(`Price validation failed: price=${price}, tickSize=${tickSize}, modulo=${modulo}, strike=${strike}, option_type=${addOptionType}`);
-      alert(`Price must be a multiple of tick size (${tickSize}). Valid prices: ${floorPrice}, ${ceilPrice}`);
-      return;
-    }
 
+  const expectedPrice = Number((Math.round(price / tickSize) * tickSize).toFixed(8));
+if (Math.abs(roundedPrice - expectedPrice) > 1e-8) {
+  const floorPrice = Number((tickSize * Math.floor(price / tickSize)).toFixed(2));
+  const ceilPrice = Number((tickSize * Math.ceil(price / tickSize)).toFixed(2));
+  console.log(`Price validation failed: price=${roundedPrice}, expected=${expectedPrice}, tickSize=${tickSize}, strike=${strike}, option_type=${addOptionType}`);
+  alert(`Price must be a multiple of tick size (${tickSize}). Valid prices: ${floorPrice}, ${ceilPrice}`);
+  return;
+}
     const quantity = lots * lotSize;
     const order_id = `order-${strike}-${addOptionType}-${Date.now()}`;
-    const order = { strike, option_type: addOptionType, order_type, price, quantity, order_id };
+    const order = { strike, option_type: addOptionType, order_type, price: roundedPrice, quantity, order_id };
 
     const book = orderBooks[strike][addOptionType];
     const bestBid = book.bids[0]?.[0] || 0;
@@ -67,9 +106,9 @@ function OrderForm() {
     let canPlaceInOrderBook = false;
 
     if (order_type === 'buy') {
-      canPlaceInOrderBook = price > bestBid && price < bestAsk;
+      canPlaceInOrderBook = roundedPrice > bestBid && roundedPrice < bestAsk;
     } else {
-      canPlaceInOrderBook = price < bestAsk && price > bestBid;
+      canPlaceInOrderBook = roundedPrice < bestAsk && roundedPrice > bestBid;
     }
 
     if (canPlaceInOrderBook) {
@@ -81,21 +120,21 @@ function OrderForm() {
 
         // Find insertion index
         let insertIndex = entries.findIndex(([p]) =>
-          order_type === 'buy' ? p < price : p > price
+          order_type === 'buy' ? p < roundedPrice : p > roundedPrice
         );
         if (insertIndex === -1) {
           insertIndex = entries.length;
         }
 
         // Check if price already exists
-        const existingIndex = entries.findIndex(([p]) => Math.abs(p - price) < 1e-12);
+        const existingIndex = entries.findIndex(([p]) => Math.abs(p - roundedPrice) < 1e-12);
         if (existingIndex !== -1) {
           // Update quantity at existing price
           entries[existingIndex][1] += quantity;
           entries[existingIndex][2] = `agg-${strike}-${addOptionType}-${Date.now()}`;
         } else {
           // Insert new order and shift rows
-          entries.splice(insertIndex, 0, [price, quantity, order_id, insertIndex + 1]);
+          entries.splice(insertIndex, 0, [roundedPrice, quantity, order_id, insertIndex + 1]);
           // Update indices for all entries
           entries = entries.map(([p, q, id], i) => [p, q, id, i + 1]);
         }
@@ -113,25 +152,21 @@ function OrderForm() {
           [totalKey]: totalQty
         };
 
-        console.log(`Inserted ${order_type} order for ${addOptionType} strike ${strike} at ${price}:`, updated[strike][addOptionType]);
+        console.log(`Inserted ${order_type} order for ${addOptionType} strike ${strike} at ${roundedPrice}:`, updated[strike][addOptionType]);
         return updated;
       });
     } else {
       setPendingOrders((prev) => [...prev, order]);
-      alert(`Order added to pending: price (${price}) out of range (bid: ${bestBid}, ask: ${bestAsk})`);
+      alert(`Order added to pending: price (${roundedPrice}) out of range (bid: ${bestBid}, ask: ${bestAsk})`);
       console.log('Order added to pending (price out of range):', order);
     }
-
-    setAddStrike('');
-    setAddPrice('');
-    setAddLots('');
   };
 
   const handleDeleteOrder = (e) => {
     e.preventDefault();
-    let strike = parseFloat(deleteStrike);
-    const price = parseFloat(deletePrice);
-    const lots = parseInt(deleteLots);
+    let strike = parseFloat(deleteStrikePrice);
+    const price = parseFloat(deletePriceLevel);
+    const lots = parseInt(deleteOrderQuantity);
 
     if (isNaN(price) || isNaN(lots) || lots <= 0) {
       alert('Please enter valid price and lots');
@@ -147,64 +182,72 @@ function OrderForm() {
     }
 
     const lotSize = orderBooks[strike]?.lotSize || 75;
-    const quantity = lots * lotSize;
+    const tickSize = orderBooks[strike]?.[deleteOptionType]?.tickSize || 0.05;
+    const roundedPrice = Number((Math.round(price / tickSize) * tickSize).toFixed(8));
 
     let orderFound = false;
 
     // Check pending orders
     setPendingOrders((prev) => {
+      let found =false;
       const updated = prev.map((order) => {
         if (
           order.strike === strike &&
           order.option_type === deleteOptionType &&
           order.order_type === deleteOrderType &&
-          Math.abs(order.price - price) < 1e-12
+          Math.abs(order.price - roundedPrice) < 1e-6
         ) {
+          const quantity = lots * lotSize;
           const newQuantity = order.quantity - quantity;
           if (newQuantity > 0) {
-            orderFound = true;
-            console.log(`Reduced pending order: ${strike} ${deleteOptionType} ${deleteOrderType} @ ${price} by ${lots} lots`);
+            found = true;
+            console.log(`Reduced pending order: ${strike} ${deleteOptionType} ${deleteOrderType} @ ${roundedPrice} by ${lots} lots`);
             return { ...order, quantity: newQuantity };
           }
-          console.log(`Deleted pending order: ${strike} ${deleteOptionType} ${deleteOrderType} @ ${price}`);
-          orderFound = true;
+          console.log(`Deleted pending order: ${strike} ${deleteOptionType} ${deleteOrderType} @ ${roundedPrice}`);
+          found = true;
           return null;
         }
         return order;
       }).filter(Boolean);
+      orderFound= orderFound || found;
       return updated;
     });
 
     // Check order books
     setOrderBooks((prev) => {
       if (!prev[strike]?.[deleteOptionType]) {
+        if (!orderFound) {
+          alert('No order found to delete at that price');
+        }
         return prev;
       }
+      let found= false;
       const book = prev[strike][deleteOptionType];
       const field = deleteOrderType === 'buy' ? 'bids' : 'asks';
-      const updatedEntries = book[field].map(([p, qty, id, index]) => {
-        if (Math.abs(p - price) < 1e-12) {
+      let updatedEntries = book[field].map(([p, qty, id, index]) => {
+        if (Math.abs(p - roundedPrice) < 1e-6) {
+          const quantity = lots * lotSize;
           const newQty = qty - quantity;
           if (newQty > 0) {
-            console.log(`Reduced order book: ${strike} ${deleteOptionType} ${deleteOrderType} @ ${price} by ${lots} lots`);
-            orderFound = true;
+            console.log(`Reduced order book: ${strike} ${deleteOptionType} ${deleteOrderType} @ ${p} by ${lots} lots`);
+            found = true;
             return [p, newQty, `agg-${strike}-${deleteOptionType}-${Date.now()}`, index];
           }
-          console.log(`Deleted from order book: ${strike} ${deleteOptionType} ${deleteOrderType} @ ${price}`);
-          orderFound = true;
+          console.log(`Deleted from order book: ${strike} ${deleteOptionType} ${deleteOrderType} @ ${p}`);
+          found = true;
           return null;
         }
         return [p, qty, id, index];
       }).filter(Boolean);
 
-      // Sort to maintain order and update indices
-      updatedEntries.sort((a, b) => deleteOrderType === 'buy' ? b[0] - a[0] : a[0] - b[0]);
-      const sortedEntries = updatedEntries.map(([p, q, id], i) => [p, q, id, i + 1]);
+      // Sort and adjust levels
+      let sortedEntries = adjustLevels(updatedEntries, deleteOrderType, book, tickSize, lotSize, strike, deleteOptionType);
 
       // Update totals
       const totalKey = deleteOrderType === 'buy' ? 'totalBidQty' : 'totalAskQty';
       const totalQty = sortedEntries.reduce((sum, [, qty]) => sum + qty, 0);
-
+     orderFound = orderFound || found;
       const updatedBook = {
         ...book,
         [field]: sortedEntries.slice(0, 10),
@@ -222,27 +265,24 @@ function OrderForm() {
       };
     });
 
-    if (!orderFound) {
-      alert('No order found to delete at that price');
-    }
-
-    setDeleteStrike('');
-    setDeletePrice('');
-    setDeleteLots('');
+    setDeleteStrikePrice('');
+    setDeletePriceLevel('');
+    setDeleteOrderQuantity('');
   };
 
-  // Get tickSize for the selected strike (if order book exists)
-  const selectedStrike = parseFloat(addStrike);
-  const tickSize = Number((orderBooks[selectedStrike]?.tickSize || 0.05).toFixed(3));
+  // Get tickSize for the selected strike
+  const tickSize = addOptionType === 'fut' 
+    ? (orderBooks[0]?.fut?.tickSize || 0.05)
+    : (orderBooks[addStrikePrice]?.[addOptionType]?.tickSize || 0.05);
 
-  // Snap addPrice to tickSize on input
+  // Snap orderPrice to tickSize on input
   const handlePriceChange = (e) => {
     const inputPrice = parseFloat(e.target.value);
-    if (!isNaN(inputPrice) && !isNaN(selectedStrike) && orderBooks[selectedStrike]?.[addOptionType]) {
-      const roundedPrice = Number((Math.round(inputPrice / tickSize) * tickSize).toFixed(3));
-      setAddPrice(roundedPrice.toString());
+    if (!isNaN(inputPrice)) {
+      const roundedPrice = Number((Math.round(inputPrice / tickSize) * tickSize).toFixed(8));
+      setOrderPrice(roundedPrice.toString());
     } else {
-      setAddPrice(e.target.value);
+      setOrderPrice(e.target.value);
     }
   };
 
@@ -256,7 +296,10 @@ function OrderForm() {
             <select
               id="add-option-type"
               value={addOptionType}
-              onChange={(e) => setAddOptionType(e.target.value)}
+              onChange={(e) => {
+                setAddOptionType(e.target.value);
+                setAddStrikePrice(''); // Reset strike when option type changes
+              }}
               className="form-input"
             >
               <option value="call">Call</option>
@@ -266,15 +309,17 @@ function OrderForm() {
           </div>
           <div className="form-group">
             <label htmlFor="add-strike">Strike:</label>
-            <input
+            <select
               id="add-strike"
-              type="number"
-              value={addStrike}
-              onChange={(e) => setAddStrike(e.target.value)}
-              placeholder="e.g., 24500"
+              value={addStrikePrice}
+              onChange={(e) => setAddStrikePrice(e.target.value)}
               className="form-input"
-              disabled={addOptionType === 'fut'}
-            />
+            >
+              <option value="" disabled>Select Strike</option>
+              {availableStrikePrices.map(strike => (
+                <option key={strike} value={strike}>{strike}</option>
+              ))}
+            </select>
           </div>
           
           <div className="form-group">
@@ -283,13 +328,13 @@ function OrderForm() {
               id="add-price"
               type="number"
               step={tickSize}
-              value={addPrice}
+              value={orderPrice}
               onChange={handlePriceChange}
               placeholder="e.g., 24.40"
               className="form-input"
             />
             <div className="lot-helper">
-              Enter price in multiples of {tickSize} (e.g., {Number((tickSize * Math.round(24 / tickSize)).toFixed(3))}, {Number((tickSize * (Math.round(24 / tickSize) + 1)).toFixed(3))})
+              Enter price in multiples of {tickSize} (e.g., {Number((tickSize * Math.round(24 / tickSize)).toFixed(8))}, {Number((tickSize * (Math.round(24 / tickSize) + 1)).toFixed(8))})
             </div>
           </div>
           <div className="form-group">
@@ -297,8 +342,8 @@ function OrderForm() {
             <input
               id="add-lots"
               type="number"
-              value={addLots}
-              onChange={(e) => setAddLots(e.target.value)}
+              value={orderLots}
+              onChange={(e) => setOrderLots(e.target.value)}
               placeholder="e.g., 2"
               className="form-input"
             />
@@ -340,15 +385,26 @@ function OrderForm() {
           </div>
           <div className="form-group">
             <label htmlFor="delete-strike">Strike:</label>
-            <input
+            <select
               id="delete-strike"
-              type="number"
-              value={deleteOptionType === 'fut' ? '' : deleteStrike}
-              onChange={(e) => setDeleteStrike(e.target.value)}
-              placeholder={deleteOptionType === 'fut' ? 'N/A for FUT' : 'e.g., 24500'}
+              value={deleteStrikePrice}
+              onChange={(e) => setDeleteStrikePrice(e.target.value)}
               className="form-input"
               disabled={deleteOptionType === 'fut'}
-            />
+            >
+              <option value="" disabled>Select Strike</option>
+              {deleteOptionType === 'fut' ? (
+                <option value="0">0</option>
+              ) : (
+                Object.keys(orderBooks)
+                  .filter(strike => orderBooks[strike][deleteOptionType])
+                  .map(strike => parseFloat(strike))
+                  .sort((a, b) => a - b)
+                  .map(strike => (
+                    <option key={strike} value={strike}>{strike}</option>
+                  ))
+              )}
+            </select>
           </div>
           <div className="form-group">
             <label htmlFor="delete-order-type">Side:</label>
@@ -368,8 +424,8 @@ function OrderForm() {
               id="delete-price"
               type="number"
               step="0.01"
-              value={deletePrice}
-              onChange={(e) => setDeletePrice(e.target.value)}
+              value={deletePriceLevel}
+              onChange={(e) => setDeletePriceLevel(e.target.value)}
               placeholder="e.g., 24.40"
               className="form-input"
             />
@@ -379,8 +435,8 @@ function OrderForm() {
             <input
               id="delete-lots"
               type="number"
-              value={deleteLots}
-              onChange={(e) => setDeleteLots(e.target.value)}
+              value={deleteOrderQuantity}
+              onChange={(e) => setDeleteOrderQuantity(e.target.value)}
               placeholder="e.g., 2"
               className="form-input"
             />
