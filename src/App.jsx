@@ -63,35 +63,63 @@ function App() {
       }
     }
 
+    // setOrderBooks((prevOrderBooks) => {
+    //   const newOrderBooks = { ...prevOrderBooks };
+    //   newStrikes.forEach(({ strike, type }) => {
+    //     if (!newOrderBooks[strike]) {
+    //       newOrderBooks[strike] = { tickSize, lotSize };
+    //     }
+    //     const typeKey = type.toLowerCase();
+    //     newOrderBooks[strike][typeKey] = {
+    //       ...newOrderBooks[strike][typeKey],
+    //       bidPrice: roundedBidPrice,
+    //       askPrice: roundedAskPrice,
+    //       tickSize,
+    //       lotSize
+    //     };
+    //   });
+    //   console.log('New order books:', newOrderBooks);
+    //   return newOrderBooks;
+    // });
+
     setOrderBooks((prevOrderBooks) => {
-      const newOrderBooks = { ...prevOrderBooks };
-      newStrikes.forEach(({ strike, type }) => {
-        if (!newOrderBooks[strike]) {
-          newOrderBooks[strike] = { tickSize, lotSize };
-        }
-        const typeKey = type.toLowerCase();
-        newOrderBooks[strike][typeKey] = {
-          ...newOrderBooks[strike][typeKey],
-          bidPrice: roundedBidPrice,
-          askPrice: roundedAskPrice,
-          tickSize,
-          lotSize
-        };
-      });
-      console.log('New order books:', newOrderBooks);
-      return newOrderBooks;
-    });
+  const newOrderBooks = { ...prevOrderBooks };
+  newStrikes.forEach(({ strike, type }) => {
+    const typeKey = type.toLowerCase();
+    
+    // Check if this strike-type combination already exists
+    if (newOrderBooks[strike]?.[typeKey]) {
+      alert(`${type} for strike ${strike} already exists!`);
+      return; // Skip this iteration, don't update existing
+    }
+    
+    if (!newOrderBooks[strike]) {
+      newOrderBooks[strike] = { tickSize, lotSize };
+    }
+    
+    // Only create new entry if it doesn't exist
+    newOrderBooks[strike][typeKey] = {
+      bidPrice: roundedBidPrice,
+      askPrice: roundedAskPrice,
+      tickSize,
+      lotSize
+    };
+  });
+  console.log('New order books:', newOrderBooks);
+  return newOrderBooks;
+});
 
     setStrikes((prevStrikes) => {
-      const updated = [...prevStrikes];
-      newStrikes.forEach(({ strike, type }) => {
-        if (!updated.some(s => s.strike === strike && s.type === type)) {
-          updated.push({ strike, type });
-        }
-      });
-      console.log('Updated strikes:', updated);
-      return updated;
-    });
+  const updated = [...prevStrikes];
+  newStrikes.forEach(({ strike, type }) => {
+    // Only add if this exact combination doesn't exist
+    if (!updated.some(s => s.strike === strike && s.type === type)) {
+      updated.push({ strike, type });
+    }
+  });
+  console.log('Updated strikes:', updated);
+  return updated;
+});
 
     setStrikeInput('');
     setBidPrice('');

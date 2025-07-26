@@ -23,33 +23,46 @@ function OrderForm() {
         .map(strike => parseFloat(strike))
         .sort((a, b) => a - b);
 
-  const adjustLevels = (entries, orderType, book, tickSize, lotSize, strike, optionType) => {
-    let sortedEntries = [...entries].sort((a, b) => orderType === 'buy' ? b[0] - a[0] : a[0] - b[0]);
-    sortedEntries = sortedEntries.map(([p, q, id], i) => [p, q, id, i + 1]);
+  // const adjustLevels = (entries, orderType, book, tickSize, lotSize, strike, optionType) => {
+  //   let sortedEntries = [...entries].sort((a, b) => orderType === 'buy' ? b[0] - a[0] : a[0] - b[0]);
+  //   sortedEntries = sortedEntries.map(([p, q, id], i) => [p, q, id, i + 1]);
 
-    if (sortedEntries.length < 10) {
-      const isBid = orderType === 'buy';
-      const referencePrice = sortedEntries.length > 0 
-        ? sortedEntries[sortedEntries.length - 1][0]
-        : isBid ? book.bidPrice : book.askPrice;
-      const newPrice = Number((referencePrice + (isBid ? -tickSize : tickSize)).toFixed(2));
-      const validPrice = isBid 
-        ? newPrice > 0 && newPrice < book.askPrice
-        : newPrice > book.bidPrice;
+  //   if (sortedEntries.length < 10) {
+  //     const isBid = orderType === 'buy';
+  //     const referencePrice = sortedEntries.length > 0 
+  //       ? sortedEntries[sortedEntries.length - 1][0]
+  //       : isBid ? book.bidPrice : book.askPrice;
+  //     const newPrice = Number((referencePrice + (isBid ? -tickSize : tickSize)).toFixed(2));
+  //     const validPrice = isBid 
+  //       ? newPrice > 0 && newPrice < book.askPrice
+  //       : newPrice > book.bidPrice;
       
-      if (validPrice) {
-        const newQty = lotSize * Math.floor(Math.random() * 5 + 1);
-        sortedEntries.push([
-          newPrice,
-          newQty,
-          `${isBid ? 'bid' : 'ask'}-${strike}-${optionType}-${Date.now()}`,
-          sortedEntries.length + 1
-        ]);
-      }
-    }
+  //     if (validPrice) {
+  //       const newQty = lotSize * Math.floor(Math.random() * 5 + 1);
+  //       sortedEntries.push([
+  //         newPrice,
+  //         newQty,
+  //         `${isBid ? 'bid' : 'ask'}-${strike}-${optionType}-${Date.now()}`,
+  //         sortedEntries.length + 1
+  //       ]);
+  //     }
+  //   }
 
-    return sortedEntries;
-  };
+  //   return sortedEntries;
+  // };
+  const adjustLevels = (entries, orderType, book, tickSize, lotSize, strike, optionType) => {
+  let sortedEntries = [...entries].sort((a, b) => orderType === 'buy' ? b[0] - a[0] : a[0] - b[0]);
+  
+  // Fill remaining slots with empty levels (price = -1)
+  while (sortedEntries.length < 10) {
+    sortedEntries.push([-1, 0, `empty-${strike}-${optionType}-${Date.now()}`, sortedEntries.length + 1]);
+  }
+  
+  // Update indices
+  sortedEntries = sortedEntries.map(([p, q, id], i) => [p, q, id, i + 1]);
+
+  return sortedEntries;
+};
 
   const handleAddOrder = (e, order_type) => {
     e.preventDefault();
@@ -100,17 +113,17 @@ if (Math.abs(roundedPrice - expectedPrice) > 1e-8) {
     const order_id = `order-${strike}-${addOptionType}-${Date.now()}`;
     const order = { strike, option_type: addOptionType, order_type, price: roundedPrice, quantity, order_id };
 
-    const book = orderBooks[strike][addOptionType];
+const book = orderBooks[strike][addOptionType];
 const bestBid = book.bids[0]?.[0] || 0;
 const bestAsk = book.asks[0]?.[0] || Infinity;
 let canPlaceInOrderBook = false;
 
 if (order_type === 'buy') {
   
-  canPlaceInOrderBook = roundedPrice > bestBid;
+  canPlaceInOrderBook = roundedPrice > 0 && roundedPrice < bestAsk;
 } else {
-   
-  canPlaceInOrderBook = roundedPrice < bestAsk;
+
+  canPlaceInOrderBook = roundedPrice > bestBid;
 }
 
     if (canPlaceInOrderBook) {
@@ -299,8 +312,13 @@ if (order_type === 'buy') {
               id="add-option-type"
               value={addOptionType}
               onChange={(e) => {
-                setAddOptionType(e.target.value);
-                setAddStrikePrice(''); // Reset strike when option type changes
+               setAddOptionType(e.target.value);
+              if (e.target.value === 'fut') {
+               setAddStrikePrice('0'); // Auto-set to 0 for FUT
+               } 
+               else {
+            setAddStrikePrice(''); // Reset for Call/Put
+    }
               }}
               className="form-input"
             >
@@ -310,19 +328,24 @@ if (order_type === 'buy') {
             </select>
           </div>
           <div className="form-group">
-            <label htmlFor="add-strike">Strike:</label>
-            <select
-              id="add-strike"
-              value={addStrikePrice}
-              onChange={(e) => setAddStrikePrice(e.target.value)}
-              className="form-input"
-            >
-              <option value="" disabled>Select Strike</option>
-              {availableStrikePrices.map(strike => (
-                <option key={strike} value={strike}>{strike}</option>
-              ))}
-            </select>
-          </div>
+  <label htmlFor="add-strike">Strike:</label>
+  <select
+    id="add-strike"
+    value={addOptionType === 'fut' ? '0' : addStrikePrice}
+    onChange={(e) => setAddStrikePrice(e.target.value)}
+    className="form-input"
+    disabled={addOptionType === 'fut'} // Disable when FUT is selected
+  >
+    <option value="" disabled>Select Strike</option>
+    {addOptionType === 'fut' ? (
+      <option value="0">0</option>
+    ) : (
+      availableStrikePrices.map(strike => (
+        <option key={strike} value={strike}>{strike}</option>
+      ))
+    )}
+  </select>
+</div>
           
           <div className="form-group">
             <label htmlFor="add-price">Price (₹):</label>
