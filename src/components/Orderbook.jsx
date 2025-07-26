@@ -150,7 +150,7 @@ function OrderBook() {
       setError('Failed to generate order book data: ' + err.message);
       setLoading(false);
     }
-  }, [strikes, triggerOrderBookGeneration, setOrderBooks]);
+  }, [strikes, triggerOrderBookGeneration]);
 
   useEffect(() => {
     const pendingInterval = setInterval(() => {
